@@ -21,7 +21,10 @@ services:
       SERVER_TYPE: http
       SERVER_PORT: "8080"
       SERVER_URL: ${SERVER_URL:?defínela en el panel DCM (https://<dominio>)}
-      CORS_ORIGIN: ${SERVER_URL}
+      # "*" es obligatorio: con una lista de orígenes Evolution responde 500 "Not allowed by CORS"
+      # a toda petición SIN cabecera Origin (healthcheck, curl, Traefik, otros servidores).
+      # La API sigue protegida por la apikey.
+      CORS_ORIGIN: "*"
       CORS_METHODS: GET,POST,PUT,DELETE
       CORS_CREDENTIALS: "true"
 
