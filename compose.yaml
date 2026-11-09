@@ -14,6 +14,11 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    ports:
+      # DCM detecta el servicio web (y le crea el dominio HTTPS) a partir de los `ports` del
+      # compose. Solo se declara el puerto interno: DCM lo publica en 127.0.0.1 con un puerto
+      # aleatorio y Traefik entra por la red privada. NO se abre nada al exterior.
+      - "8080"
     labels:
       # Una sola sesión de WhatsApp: nunca dos copias de la API a la vez durante un redeploy.
       dcm.overlap: stop-blue-before-start
