@@ -1,0 +1,17 @@
+# Nunca subir valores reales ni datos de producción
+.env
+.env.*
+!.env.example
+*.env
+*.pem
+*.key
+*.sql
+*.dump
+*.sql.gz
+*.tar
+*.tar.gz
+instances/
+postgres_data/
+redis_data/
+secrets/
+*.log
