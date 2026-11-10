@@ -9,6 +9,18 @@ services:
   api:
     image: evoapicloud/evolution-api:v2.3.7
     restart: unless-stopped
+    # El manager de la imagen solo lista contactos @s.whatsapp.net y los chats privados nuevos llegan
+    # como @lid: se parchea al arrancar para listarlos y mostrar su número real. Si cambia la versión
+    # de la imagen, el sed deja de coincidir sin romper nada. La última línea es el ENTRYPOINT original.
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        sed -i \
+          -e 's#C\.remoteJid\.includes("@s\.whatsapp\.net")#["@s.whatsapp.net","@lid"].some(x=>C.remoteJid.endsWith(x))#g' \
+          -e 's#chat-description block text-xs text-gray-500",children:C\.remoteJid\.split#chat-description block text-xs text-gray-500",children:(C.lastMessage?.key?.remoteJidAlt||C.remoteJid).split#g' \
+          manager/dist/assets/index-*.js
+        . ./Docker/scripts/deploy_database.sh && npm run start:prod
     depends_on:
       postgres:
         condition: service_healthy
