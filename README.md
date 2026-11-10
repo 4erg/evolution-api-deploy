@@ -90,3 +90,5 @@ No se publican puertos de PostgreSQL ni de Redis.
 
 Las actualizaciones automáticas se añadirán más adelante, solo para Evolution API, tras verificar
 el envío de mensajes. La versión se cambia siempre editando la etiqueta de `compose.yaml`.
+
+prueba
