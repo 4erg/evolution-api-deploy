@@ -14,6 +14,7 @@ Instalación nueva: no incluye datos, sesiones ni credenciales de ningún servid
 | `api` | `evoapicloud/evolution-api:v2.3.7` | 8080 interno (DCM lo publica solo en `127.0.0.1` y Traefik lo expone por HTTPS) |
 | `postgres` | `postgres:15.14-alpine` | ninguno |
 | `redis` | `redis:7.4-alpine` | ninguno |
+| `commands` | `node:22.21.1-alpine` | ninguno (recibe el webhook de `api` por la red privada) |
 
 - Sin `latest`, sin `ports`, sin `container_name`, sin redes ni volúmenes externos (DCM los rechaza).
 - Volúmenes con nombre: `evolution_instances`, `postgres_data`, `redis_data`.
@@ -21,7 +22,8 @@ Instalación nueva: no incluye datos, sesiones ni credenciales de ningún servid
 - `dcm.overlap: stop-blue-before-start` en `api`: nunca hay dos copias conectadas a la misma sesión de WhatsApp.
 - Mensajes, contactos, chats e historial **se guardan en PostgreSQL** para verlos en el chat de `/manager`
   (y entran en los respaldos). El chat se actualiza al recargar la página: websocket apagado.
-- Webhooks, websocket, Chatwoot, RabbitMQ y demás integraciones apagadas.
+- Webhook global solo de `messages.upsert`, hacia el servicio interno `commands`. Websocket, Chatwoot,
+  RabbitMQ y demás integraciones apagadas.
 
 ## Variables (se cargan en DCM, ver `.env.example`)
 
@@ -68,6 +70,14 @@ curl -s -X POST "$URL/message/sendText/DevEx" \
   -H "apikey: $KEY" -H "Content-Type: application/json" \
   -d '{"number":"51XXXXXXXXX","text":"Prueba Evolution API"}'
 ```
+
+## Comandos de WhatsApp
+
+| Comando | Dónde | Respuesta |
+|---|---|---|
+| `!revealId` | Solo en grupos (exacto, respeta mayúsculas) | El id del grupo, por ejemplo `120363000000000000@g.us` |
+
+Requiere que "Ignore Groups" siga apagado en la instancia.
 
 ## Datos y respaldos
 
