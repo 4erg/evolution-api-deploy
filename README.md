@@ -19,8 +19,9 @@ Instalación nueva: no incluye datos, sesiones ni credenciales de ningún servid
 - Volúmenes con nombre: `evolution_instances`, `postgres_data`, `redis_data`.
 - Healthchecks en los tres servicios; `api` espera a que PostgreSQL y Redis estén sanos.
 - `dcm.overlap: stop-blue-before-start` en `api`: nunca hay dos copias conectadas a la misma sesión de WhatsApp.
-- Configuración mínima para **enviar mensajes** (webhooks, websocket, Chatwoot, RabbitMQ, etc. apagados;
-  no se guardan mensajes ni contactos en la base).
+- Mensajes, contactos, chats e historial **se guardan en PostgreSQL** para verlos en el chat de `/manager`
+  (y entran en los respaldos). El chat se actualiza al recargar la página: websocket apagado.
+- Webhooks, websocket, Chatwoot, RabbitMQ y demás integraciones apagadas.
 
 ## Variables (se cargan en DCM, ver `.env.example`)
 

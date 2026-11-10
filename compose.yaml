@@ -40,12 +40,14 @@ services:
       DATABASE_CONNECTION_URI: postgresql://evolution:${POSTGRES_PASSWORD:?defínela en el panel DCM}@postgres:5432/evolution?schema=public
       DATABASE_CONNECTION_CLIENT_NAME: evolution_dcm
       DATABASE_SAVE_DATA_INSTANCE: "true"
-      DATABASE_SAVE_DATA_NEW_MESSAGE: "false"
-      DATABASE_SAVE_MESSAGE_UPDATE: "false"
-      DATABASE_SAVE_DATA_CONTACTS: "false"
-      DATABASE_SAVE_DATA_CHATS: "false"
-      DATABASE_SAVE_DATA_LABELS: "false"
-      DATABASE_SAVE_DATA_HISTORIC: "false"
+      # El chat del manager lee de PostgreSQL: sin estas variables se ve vacío.
+      DATABASE_SAVE_DATA_NEW_MESSAGE: "true"
+      DATABASE_SAVE_MESSAGE_UPDATE: "true"
+      DATABASE_SAVE_DATA_CONTACTS: "true"
+      DATABASE_SAVE_DATA_CHATS: "true"
+      DATABASE_SAVE_DATA_LABELS: "true"
+      # Guarda el historial que WhatsApp envía al escanear el QR.
+      DATABASE_SAVE_DATA_HISTORIC: "true"
       DATABASE_SAVE_IS_ON_WHATSAPP: "true"
       DATABASE_SAVE_IS_ON_WHATSAPP_DAYS: "7"
       DATABASE_DELETE_MESSAGE: "true"
@@ -57,8 +59,10 @@ services:
       CACHE_REDIS_SAVE_INSTANCES: "false"
       CACHE_LOCAL_ENABLED: "false"
 
-      # Solo se necesita enviar mensajes: integraciones opcionales apagadas.
+      # Integraciones opcionales apagadas.
       DEL_INSTANCE: "false"
+      # No usar WEBSOCKET_ALLOWED_HOSTS="*": el manager conecta sin apikey y, detrás de Traefik,
+      # eso publicaría a internet los mensajes en vivo y el envío de nodos. El chat se actualiza al recargar.
       WEBSOCKET_ENABLED: "false"
       WEBHOOK_GLOBAL_ENABLED: "false"
       RABBITMQ_ENABLED: "false"
