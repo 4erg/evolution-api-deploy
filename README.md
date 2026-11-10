@@ -22,6 +22,8 @@ Instalación nueva: no incluye datos, sesiones ni credenciales de ningún servid
 - `dcm.overlap: stop-blue-before-start` en `api`: nunca hay dos copias conectadas a la misma sesión de WhatsApp.
 - Mensajes, contactos, chats e historial **se guardan en PostgreSQL** para verlos en el chat de `/manager`
   (y entran en los respaldos). El chat se actualiza al recargar la página: websocket apagado.
+- Los chats privados `@lid` se guardan bajo el número real (trigger `unificar_lid` instalado al arrancar `api`),
+  para que cada persona sea un solo chat. El identificador original queda en `key.previousRemoteJid`.
 - Webhook global solo de `messages.upsert`, hacia el servicio interno `commands`. Websocket, Chatwoot,
   RabbitMQ y demás integraciones apagadas.
 

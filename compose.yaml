@@ -11,7 +11,9 @@ services:
     restart: unless-stopped
     # El manager de la imagen solo lista contactos @s.whatsapp.net y los chats privados nuevos llegan
     # como @lid: se parchea al arrancar para listarlos y mostrar su número real. Si cambia la versión
-    # de la imagen, el sed deja de coincidir sin romper nada. La última línea es el ENTRYPOINT original.
+    # de la imagen, el sed deja de coincidir sin romper nada. Migraciones y start:prod son el ENTRYPOINT
+    # original. El SQL une a cada persona en un solo chat: guarda los @lid bajo su número real y deja el
+    # identificador anterior en key.previousRemoteJid. "$$" es un "$" literal para compose.
     entrypoint:
       - /bin/bash
       - -c
@@ -20,7 +22,23 @@ services:
           -e 's#C\.remoteJid\.includes("@s\.whatsapp\.net")#["@s.whatsapp.net","@lid"].some(x=>C.remoteJid.endsWith(x))#g' \
           -e 's#chat-description block text-xs text-gray-500",children:C\.remoteJid\.split#chat-description block text-xs text-gray-500",children:(C.lastMessage?.key?.remoteJidAlt||C.remoteJid).split#g' \
           manager/dist/assets/index-*.js
-        . ./Docker/scripts/deploy_database.sh && npm run start:prod
+        . ./Docker/scripts/deploy_database.sh || exit 1
+        npx prisma db execute --url "$$DATABASE_CONNECTION_URI" --stdin <<'SQL' || echo "No se pudo instalar la unificación de @lid"
+        CREATE OR REPLACE FUNCTION unificar_lid() RETURNS trigger AS $$$$
+        BEGIN
+          IF NEW."key"->>'remoteJid' LIKE '%@lid' AND NEW."key"->>'remoteJidAlt' LIKE '%@s.whatsapp.net' THEN
+            NEW."key" := NEW."key" || jsonb_build_object('previousRemoteJid', NEW."key"->>'remoteJid', 'remoteJid', NEW."key"->>'remoteJidAlt');
+          END IF;
+          RETURN NEW;
+        END;
+        $$$$ LANGUAGE plpgsql;
+        DROP TRIGGER IF EXISTS unificar_lid ON "Message";
+        CREATE TRIGGER unificar_lid BEFORE INSERT ON "Message" FOR EACH ROW EXECUTE FUNCTION unificar_lid();
+        UPDATE "Message"
+        SET "key" = "key" || jsonb_build_object('previousRemoteJid', "key"->>'remoteJid', 'remoteJid', "key"->>'remoteJidAlt')
+        WHERE "key"->>'remoteJid' LIKE '%@lid' AND "key"->>'remoteJidAlt' LIKE '%@s.whatsapp.net';
+        SQL
+        npm run start:prod
     depends_on:
       postgres:
         condition: service_healthy
